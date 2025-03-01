@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -24,7 +26,18 @@ public class ProductService implements IProductService {
 
     @Override
     public List<Product> getAllProducts() {
-        return List.of();
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        FakeStoreProductDto[] fakeStoreProductDtos = restTemplate.getForEntity("https://fakestoreapi.com/products", FakeStoreProductDto[].class).getBody();
+        if (fakeStoreProductDtos == null) {
+            return new ArrayList<>();
+        }
+
+        List<Product> products = new ArrayList<>();
+        for (FakeStoreProductDto fakeStoreProductDto : fakeStoreProductDtos) {
+            products.add(from(fakeStoreProductDto));
+        }
+        return products;
     }
 
     @Override
@@ -41,7 +54,20 @@ public class ProductService implements IProductService {
 
     @Override
     public Product createProduct(Product product) {
-        return null;
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
+        fakeStoreProductDto.setTitle(product.getName());
+        fakeStoreProductDto.setDescription(product.getDescription());
+        fakeStoreProductDto.setPrice(product.getPrice());
+        fakeStoreProductDto.setImage(product.getImageUrl());
+        fakeStoreProductDto.setCategory(product.getCategory().getName());
+
+        FakeStoreProductDto fakeStoreProductDtoResponse = restTemplate.postForEntity("https://fakestoreapi.com/products", fakeStoreProductDto, FakeStoreProductDto.class).getBody();
+        if (fakeStoreProductDtoResponse == null) {
+            return null;
+        }
+
+        return from(fakeStoreProductDtoResponse);
     }
 
     private Product from(FakeStoreProductDto fakeStoreProductDto) {
