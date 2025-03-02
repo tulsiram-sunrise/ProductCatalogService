@@ -62,7 +62,7 @@ public class ProductController {
     }
 
     @PutMapping("/products/{id}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable("id") Long id, @RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable("id") Long id, @RequestBody ProductDto productDto) throws Exception {
         if (productDto == null) {
             throw new RuntimeException("Invalid productDto");
         }
@@ -70,6 +70,8 @@ public class ProductController {
         if (productDto.getName().isEmpty()) {
             throw new RuntimeException("Product name cannot be empty");
         }
+        if (id == 21)
+            throw new RuntimeException("Broken product");
 
         Product product = from(productDto);
         return new ResponseEntity<>(from(productService.replaceProduct(id, product)), HttpStatus.OK);
@@ -110,5 +112,10 @@ public class ProductController {
         }
 
         return product;
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleException(Exception exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
