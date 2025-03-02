@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -29,7 +28,7 @@ public class ProductController {
             return null;
         }
 
-        return products.stream().map(this::convertToDto).toList();
+        return products.stream().map(this::from).toList();
     }
 
     @GetMapping("/products/{id}")
@@ -43,7 +42,7 @@ public class ProductController {
             if (product == null) {
                 return null;
             }
-            return new ResponseEntity<>(convertToDto(product), HttpStatus.CREATED);
+            return new ResponseEntity<>(from(product), HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -58,6 +57,43 @@ public class ProductController {
             throw new RuntimeException("Product name cannot be empty");
         }
 
+        Product product = from(productDto);
+        return from(productService.createProduct(product));
+    }
+
+    @PutMapping("/products/{id}")
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable("id") Long id, @RequestBody ProductDto productDto) {
+        if (productDto == null) {
+            throw new RuntimeException("Invalid productDto");
+        }
+
+        if (productDto.getName().isEmpty()) {
+            throw new RuntimeException("Product name cannot be empty");
+        }
+
+        Product product = from(productDto);
+        return new ResponseEntity<>(from(productService.replaceProduct(id, product)), HttpStatus.OK);
+    }
+
+
+    private ProductDto from(Product product) {
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        if (product.getCategory() != null) {
+            CategoryDto categoryDto = new CategoryDto();
+            categoryDto.setId(product.getCategory().getId());
+            categoryDto.setName(product.getCategory().getName());
+            categoryDto.setDescription(product.getCategory().getDescription());
+            productDto.setCategory(categoryDto);
+        }
+
+        return productDto;
+    }
+
+    private Product from(ProductDto productDto) {
         Product product = new Product();
         product.setName(productDto.getName());
         product.setDescription(productDto.getDescription());
@@ -73,24 +109,6 @@ public class ProductController {
             product.setCategory(category);
         }
 
-        return convertToDto(productService.createProduct(product));
-    }
-
-
-    private ProductDto convertToDto(Product product) {
-        ProductDto productDto = new ProductDto();
-        productDto.setId(product.getId());
-        productDto.setName(product.getName());
-        productDto.setDescription(product.getDescription());
-        productDto.setPrice(product.getPrice());
-        if (product.getCategory() != null) {
-            CategoryDto categoryDto = new CategoryDto();
-            categoryDto.setId(product.getCategory().getId());
-            categoryDto.setName(product.getCategory().getName());
-            categoryDto.setDescription(product.getCategory().getDescription());
-            productDto.setCategory(categoryDto);
-        }
-
-        return productDto;
+        return product;
     }
 }
