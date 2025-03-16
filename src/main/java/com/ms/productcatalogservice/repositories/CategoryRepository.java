@@ -1,0 +1,9 @@
+package com.ms.productcatalogservice.repositories;
+
+import com.ms.productcatalogservice.models.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface CategoryRepository extends JpaRepository<Category, Long> {
+}
