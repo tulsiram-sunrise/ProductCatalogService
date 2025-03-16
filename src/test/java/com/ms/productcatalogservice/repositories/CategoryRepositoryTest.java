@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,5 +80,38 @@ class CategoryRepositoryTest {
         *   EAGER                   SUB SELECT              ASK                         2 SELECT Query
         *
         * */
+    }
+
+    @Test
+    @Transactional
+    public void runSubQueries() {
+        List<Category> categories = categoryRepository.findAll();
+        for (Category category : categories) {
+            System.out.println(category);
+            for (Product product : category.getProducts()) {
+                System.out.println(product);
+            }
+        }
+
+
+        /*
+         * Observations:
+         *   Fetch Type              Fetch Mode              Ask for product             Result
+         *   LAZY                    SELECT                  Don't ASK                   1 SELECT Query
+         *   LAZY                    SELECT                  ASK                         1 SELECT Category + multiple SELECT Product
+         *   EAGER                   SELECT                  Don't ASK                   1 SELECT Category + multiple SELECT Product
+         *   EAGER                   SELECT                  ASK                         1 SELECT Category + multiple SELECT Product
+         *
+         *   LAZY                    JOIN                    Don't ASK                   1 SELECT Category + multiple SELECT Product
+         *   LAZY                    JOIN                    ASK                         1 SELECT Category + multiple SELECT Product
+         *   EAGER                   JOIN                    Don't ASK                   1 SELECT Category + multiple SELECT Product
+         *   EAGER                   JOIN                    ASK                         1 SELECT Category + multiple SELECT Product
+         *
+         *   LAZY                    SUB SELECT              Don't ASK                   1 SELECT Query
+         *   LAZY                    SUB SELECT              ASK                         2 SELECT Query + 1 Sub Query
+         *   EAGER                   SUB SELECT              Don't ASK                   2 SELECT Query + 1 Sub Query
+         *   EAGER                   SUB SELECT              ASK                         2 SELECT Query + 1 Sub Query
+         *
+         * */
     }
 }
