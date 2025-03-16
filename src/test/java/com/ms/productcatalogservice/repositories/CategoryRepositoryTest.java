@@ -43,7 +43,41 @@ class CategoryRepositoryTest {
         *       1 - do not ask for products then it runs 1 SELECT query
         *       2 - ask for products then it runs 2 SELECT query
         *   Fetch Type: EAGER - fetch category and
-        *       whether we ask/don't ask for products then it runs single JOIN query
+        *       whether we do/don't ask for products it runs single JOIN query
+        * */
+    }
+
+    @Test
+    @Transactional
+    public void testFetchModesAndTypes() {
+        Category category = categoryRepository.findById(1L).orElse(null);
+        if (category == null) {
+            return;
+        }
+
+        System.out.println(category);
+        for (Product product : category.getProducts()) {
+            System.out.println(product);
+        }
+
+        /*
+        * Observations:
+        *   Fetch Type              Fetch Mode              Ask for product             Result
+        *   LAZY                    SELECT                  Don't ASK                   1 SELECT Query
+        *   LAZY                    SELECT                  ASK                         2 SELECT Query
+        *   EAGER                   SELECT                  Don't ASK                   2 SELECT Query
+        *   EAGER                   SELECT                  ASK                         2 SELECT Query
+        *
+        *   LAZY                    JOIN                    Don't ASK                   1 JOIN Query
+        *   LAZY                    JOIN                    ASK                         1 JOIN Query
+        *   EAGER                   JOIN                    Don't ASK                   1 JOIN Query
+        *   EAGER                   JOIN                    ASK                         1 JOIN Query
+        *
+        *   LAZY                    SUB SELECT              Don't ASK                   1 SELECT Query
+        *   LAZY                    SUB SELECT              ASK                         2 SELECT Query
+        *   EAGER                   SUB SELECT              Don't ASK                   2 SELECT Query
+        *   EAGER                   SUB SELECT              ASK                         2 SELECT Query
+        *
         * */
     }
 }
